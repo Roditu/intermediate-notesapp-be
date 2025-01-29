@@ -1,7 +1,5 @@
-const ClientError = require("../../exceptions/ClientError");
-
 class NotesHandler {
-  constructor(service, validator){
+  constructor(service, validator) {
     this._service = service;
     this._validator = validator;
 
@@ -12,78 +10,72 @@ class NotesHandler {
     this.deleteNoteByIdHandler = this.deleteNoteByIdHandler.bind(this);
   }
 
-  async postNoteHandler(req, h){
-      this._validator.validateNotePayload(req.payload);
-      const {title = 'untilted', body, tags} = req.payload;
-      
-      const noteId = await this._service.addNote({ title, body, tags });
-      
-      const res = h.response({
-        status: 'success',
-        message: 'Catatan berhasil ditambahkan',
-        data: {
-          noteId,
-        },
-      });
-      
-      res.code(201);
-      return res;
-    }
+  async postNoteHandler(req, h) {
+    this._validator.validateNotePayload(req.payload);
+    const { title = 'untilted', body, tags } = req.payload;
 
-  async getAllNotesHandler(){
+    const noteId = await this._service.addNote({ title, body, tags });
+
+    const res = h.response({
+      status: 'success',
+      message: 'Catatan berhasil ditambahkan',
+      data: {
+        noteId,
+      },
+    });
+
+    res.code(201);
+    return res;
+  }
+
+  async getAllNotesHandler() {
     const notes = await this._service.getAllNotes();
-    
+
     return {
       status: 'success',
       data: {
         notes,
       },
     };
-  };
-
-  async getNoteByIdHandler(req, h){
-
-      const { id } = req.params;
-      
-      const note = await this._service.getNoteById(id);
-
-      return {
-        status: 'success',
-        data: {
-          note,
-        },
-      }
-    
   }
 
-  async putNoteByIdHandler(req, h){
+  async getNoteByIdHandler(req) {
+    const { id } = req.params;
 
-      this._validator.validateNotePayload(req.payload)
+    const note = await this._service.getNoteById(id);
 
-      const { id } = req.params;
-      
-      await this._service.editNoteById(id, req.payload);
-      
-      return {
-        status: 'success',
-        message: 'Catatan berhasil diperbarui',
-      }
-    
-  };
+    return {
+      status: 'success',
+      data: {
+        note,
+      },
+    };
+  }
 
-  async deleteNoteByIdHandler(req, h){
+  async putNoteByIdHandler(req) {
+    this._validator.validateNotePayload(req.payload);
 
-      const { id } = req.params;
-      
-      await this._service.deleteNoteById(id);
-      return {
-        status: 'success',
-        message: 'Catatan berhasil dihapus'
-      }
-    
-  };
+    const { id } = req.params;
+
+    await this._service.editNoteById(id, req.payload);
+
+    return {
+      status: 'success',
+      message: 'Catatan berhasil diperbarui',
+    };
+  }
+
+  async deleteNoteByIdHandler(req) {
+    const { id } = req.params;
+
+    await this._service.deleteNoteById(id);
+    return {
+      status: 'success',
+      message: 'Catatan berhasil dihapus',
+    };
+  }
 }
 
 module.exports = {
-  NotesHandler
+  NotesHandler,
 };
