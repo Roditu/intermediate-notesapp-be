@@ -19,7 +19,7 @@ exports.up = (pgm) => {
     pgm.addConstraint('notes', 'fk_notes.owner_users.id', 'FOREIGN KEY(owner) REFERENCES users(id) ON DELETE CASCADE');
   };
    
-  exports.down = (pgm) => {
+exports.down = (pgm) => {
     // menghapus constraint fk_notes.owner_users.id pada tabel notes
     pgm.dropConstraint('notes', 'fk_notes.owner_users.id');
    
