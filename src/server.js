@@ -28,7 +28,7 @@ const ProducerService = require('./services/rabbitmq/ProducerService');
 const ExportsValidator = require('./validator/exports');
 
 const uploads = require('./api/uploads');
-const StorageService = require('./services/storage/StorageService');
+const StorageService = require('./services/S3/StorageService');
 const UploadsValidator = require('./validator/uploads');
 
 const init = async () => {
@@ -36,7 +36,7 @@ const init = async () => {
   const notesService = new NotesService(collaborationsService);
   const usersService = new UsersService();
   const authenticationsService = new AuthenticationsService();
-  const storageService = new StorageService(path.resolve(__dirname, 'api/uploads/file/images'));
+  const storageService = new StorageService();
 
   const server = Hapi.server({
     port: process.env.PORT,
@@ -122,17 +122,41 @@ const init = async () => {
   ]);
 
   server.ext('onPreResponse', (request, h) => {
+    // mendapatkan konteks response dari request
     const { response } = request;
 
-    if (response instanceof ClientError) {
+
+    if (response instanceof Error) {
+ 
+      // penanganan client error secara internal.
+      if (response instanceof ClientError) {
+        const newResponse = h.response({
+          status: 'fail',
+          message: response.message,
+        });
+        newResponse.code(response.statusCode);
+        return newResponse;
+      }
+
+
+      // mempertahankan penanganan client error oleh hapi secara native, seperti 404, etc.
+      if (!response.isServer) {
+        return h.continue;
+      }
+
+
+      // penanganan server error sesuai kebutuhan
+      // console.log(response)
       const newResponse = h.response({
-        status: 'fail',
-        message: response.message,
+        status: 'error',
+        message: 'terjadi kegagalan pada server kami',
       });
-      newResponse.code(response.statusCode);
+      newResponse.code(500);
       return newResponse;
     }
 
+
+    // jika bukan error, lanjutkan dengan response sebelumnya (tanpa terintervensi)
     return h.continue;
   });
 
